@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option go_package = ".";
+
+package queue;
+
+// The gRPC service definition for the task queue (similar to SQS)
+service Queue {
+    // Sends a message to the queue
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+
+    // Receives a message from the queue with visibility timeout
+    rpc ReceiveMessage(ReceiveMessageRequest) returns (ReceiveMessageResponse);
+
+    // Deletes a message from the queue using its receipt handle
+    rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse);
+}
+
+// SendMessage request structure
+message SendMessageRequest {
+    string message_body = 1; // Body of the message
+}
+
+// SendMessage response structure
+message SendMessageResponse {
+    string message_id = 1; // Unique ID of the sent message
+}
+
+// ReceiveMessage request structure
+message ReceiveMessageRequest {}
+
+// ReceiveMessage response structure
+message ReceiveMessageResponse {
+    string message_id = 1;         // Unique ID of the received message
+    string message_body = 2;       // Body of the received message
+    string receipt_handle = 3;     // Unique receipt handle for deleting the message
+}
+
+// DeleteMessage request structure
+message DeleteMessageRequest {
+    string receipt_handle = 1;     // The receipt handle of the message to delete
+}
+
+// DeleteMessage response structure
+message DeleteMessageResponse {
+    bool success = 1;              // Indicates if the message deletion was successful
+}
