@@ -1,5 +1,7 @@
 # Queue Simulation using GRPC and Golang
 
+This project implements a simplified, in-memory message queue system using gRPC in Go, inspired by AWS Simple Queue Service (SQS). The goal of the project is to create a basic task queue system where producers can send messages to a queue, consumers can retrieve those messages with a visibility timeout, and once a task is complete, the messages can be deleted from the queue.
+
 ### Start the server
 ``` bash
 go run cmd/server/main.go
@@ -71,3 +73,6 @@ CREATE TABLE queues (
    PRIMARY KEY(ID)
 );
 ```
+
+protoc --go_out=. --go-grpc_out=. --proto_path=../../api/
+proto queue.proto
