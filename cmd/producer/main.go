@@ -20,12 +20,17 @@ func main() {
 
 	c := pb.NewQueueClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	for {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-	sendResp, err := c.SendMessage(ctx, &pb.SendMessageRequest{MessageBody: "Hello, SQS!"})
-	if err != nil {
-		log.Fatalf("Could not send message: %v", err)
+		sendResp, err := c.SendMessage(ctx, &pb.SendMessageRequest{MessageBody: "Hello, SQS!"})
+		if err != nil {
+			log.Fatalf("Could not send message: %v", err)
+			break
+		}
+		log.Printf("Message sent, ID: %s", sendResp.MessageId)
+
+		time.Sleep(2 * time.Second)
 	}
-	log.Printf("Message sent, ID: %s", sendResp.MessageId)
 }
