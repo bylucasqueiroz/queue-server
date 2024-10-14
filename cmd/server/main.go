@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	pb "queueapi/pkg/api" // Import the generated package
 
@@ -97,6 +99,12 @@ func main() {
 	queueServer := &QueueServer{queue: Queue{messages: []*Message{}}}
 
 	pb.RegisterQueueServer(s, queueServer)
+
+	// Start Prometheus metrics server
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		log.Fatal(http.ListenAndServe(":2112", nil))
+	}()
 
 	log.Println("Server is running on port 50051...")
 	if err := s.Serve(lis); err != nil {
