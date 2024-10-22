@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"queueapi/internal/core/port/service"
-	"queueapi/internal/core/service"
 
 	proto "queueapi/api"
 )
 
+// https://github.com/phamtai97/go-experienced-series/blob/main/hexagonal/internal/core/service/user.go
+
 type queueController struct {
 	proto.UnimplementedQueueServer
-	queueService service.Queue
+	queueService service.QueueService
 }
 
 func NewQueueController(queueService service.QueueService) proto.QueueServer {

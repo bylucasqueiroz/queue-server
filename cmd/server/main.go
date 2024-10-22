@@ -5,10 +5,13 @@ import (
 	"net"
 	"net/http"
 
+	"queueapi/internal/core/service"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	pb "queueapi/api" // Import the generated package
+	grpcCtrl "queueapi/internal/controller/grpc"
 
 	"google.golang.org/grpc"
 )
@@ -37,7 +40,6 @@ func init() {
 }
 
 // QueueServer is the gRPC server that implements the Queue service
-
 func main() {
 	// Listen on port 50051
 	lis, err := net.Listen("tcp", ":50051")
@@ -45,13 +47,15 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
+	// Create a new Service
+	queueService := service.NewQueueService()
+
+	// Create a new Controller
+	userController := grpcCtrl.NewQueueController(queueService)
+
 	// Create a new gRPC server
 	s := grpc.NewServer()
-
-	// Initialize the queue and register the gRPC server
-	queueServer := &QueueServer{queue: Queue{messages: []*Message{}}}
-
-	pb.RegisterQueueServer(s, queueServer)
+	pb.RegisterQueueServer(s, userController)
 
 	// Start Prometheus metrics server
 	go func() {

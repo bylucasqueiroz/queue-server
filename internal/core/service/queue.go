@@ -14,6 +14,12 @@ type queueService struct {
 	mu       sync.Mutex // for thread-safe access
 }
 
+func NewQueueService() service.QueueService {
+	return &queueService{
+		messages: make([]*service.Message, 0),
+	}
+}
+
 // SendMessage pushes a message onto the queue
 func (q *queueService) SendMessage(body string) string {
 	q.mu.Lock()

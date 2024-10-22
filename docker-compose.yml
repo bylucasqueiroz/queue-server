@@ -15,21 +15,10 @@ services:
     depends_on:
       - prometheus
 
-  producer:
+  client:
     build:
       context: .
-      dockerfile: ./cmd/producer/Dockerfile
-    depends_on:
-      - server
-    volumes:
-      - .:/src
-    networks:
-      - app-network
-
-  consumer:
-    build:
-      context: .
-      dockerfile: ./cmd/consumer/Dockerfile
+      dockerfile: ./cmd/client/Dockerfile
     depends_on:
       - server
     volumes:
