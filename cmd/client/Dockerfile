@@ -1,4 +1,4 @@
-# cmd/consumer/Dockerfile
+# cmd/client/Dockerfile
 FROM golang:1.22-alpine
 
 WORKDIR /app
@@ -10,8 +10,8 @@ RUN go mod download
 # Copy the rest of the application code
 COPY . .
 
-# Build the consumer binary
-RUN go build -o consumer ./cmd/consumer/main.go
+# Build the client binary
+RUN go build -o client ./cmd/client/main.go
 
-# Command to run the consumer
-CMD ["/app/consumer"]
+# Command to run the client
+CMD ["/app/client"]

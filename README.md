@@ -5,7 +5,7 @@ This project implements a simplified, in-memory message queue system using gRPC 
 ### Generate GRPC code by Proto
 
 ``` bash
-protoc --go_out=. --go-grpc_out=. --proto_path=../../api/proto queue.proto
+protoc --go_out=. --go-grpc_out=. --proto_path=. queue.proto
 ```
 
 ### Start the server
