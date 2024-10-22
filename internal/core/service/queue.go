@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"queueapi/internal/core/port/service"
+	"queueserver/internal/core/port/service"
 
 	"github.com/google/uuid"
 )

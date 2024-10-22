@@ -1,4 +1,4 @@
-module queueapi
+module queueserver
 
 go 1.22.0
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"queueapi/internal/core/config"
+	"queueserver/internal/core/config"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"

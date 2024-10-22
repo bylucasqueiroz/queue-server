@@ -5,13 +5,13 @@ import (
 	"net"
 	"net/http"
 
-	"queueapi/internal/core/service"
+	"queueserver/internal/core/service"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	pb "queueapi/api" // Import the generated package
-	grpcCtrl "queueapi/internal/controller/grpc"
+	pb "queueserver/api" // Import the generated package
+	grpcCtrl "queueserver/internal/controller/grpc"
 
 	"google.golang.org/grpc"
 )

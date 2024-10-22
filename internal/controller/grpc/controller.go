@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"queueapi/internal/core/port/service"
+	"queueserver/internal/core/port/service"
 
-	proto "queueapi/api"
+	proto "queueserver/api"
 )
 
 // https://github.com/phamtai97/go-experienced-series/blob/main/hexagonal/internal/core/service/user.go

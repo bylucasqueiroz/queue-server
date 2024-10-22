@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	pb "queueapi/api"
+	pb "queueserver/api"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
