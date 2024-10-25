@@ -10,6 +10,9 @@ services:
       - "2112:2112" # Metrics port
     volumes:
       - .:/src
+      - ./sqlite:/data
+    environment:
+      - SQLITE_DB_PATH=/data/queues.db
     networks:
       - app-network
     depends_on:
@@ -51,6 +54,7 @@ services:
 
 volumes:
   grafana-storage:
+  sqlite:
 
 networks:
   app-network:

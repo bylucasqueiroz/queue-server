@@ -10,8 +10,6 @@ import (
 	proto "queueserver/api"
 )
 
-// https://github.com/phamtai97/go-experienced-series/blob/main/hexagonal/internal/core/service/user.go
-
 type queueController struct {
 	proto.UnimplementedQueueServer
 	queueService service.QueueService
