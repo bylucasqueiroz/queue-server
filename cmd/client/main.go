@@ -40,4 +40,6 @@ func main() {
 		log.Fatalf("Could not delete message: %v", err)
 	}
 	log.Printf("Message deleted: %v", deleteResp.Success)
+
+	select {}
 }
