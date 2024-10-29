@@ -1,42 +1,50 @@
 package service
 
 import (
+	"context"
 	"sync"
 	"time"
 
+	"queueserver/internal/adapter/repository"
+	"queueserver/internal/core/domain"
 	"queueserver/internal/core/port/service"
 
 	"github.com/google/uuid"
 )
 
 type queueService struct {
-	messages []*service.Message
-	mu       sync.Mutex // for thread-safe access
+	messages     []*domain.Message
+	queueRepo    *repository.PostgresQueueRepository
+	messageRepos *repository.PostgresMessageRepository
+	mu           sync.Mutex // for thread-safe access
 }
 
-func NewQueueService() service.QueueService {
+func NewQueueService(queueRepo *repository.PostgresQueueRepository, messageRepo *repository.PostgresMessageRepository) service.QueueService {
 	return &queueService{
-		messages: make([]*service.Message, 0),
+		messages:     make([]*domain.Message, 0),
+		queueRepo:    queueRepo,
+		messageRepos: messageRepo,
 	}
 }
 
 // SendMessage pushes a message onto the queue
-func (q *queueService) SendMessage(body string) string {
+func (q *queueService) SendMessage(ctx context.Context, body string) string {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	message := &service.Message{
+	message := &domain.Message{
 		ID:                generateID(),
 		Body:              body,
 		ReceiptHandle:     generateReceiptHandle(),
 		VisibilityTimeout: time.Now(), // Initial visibility timeout set to now
 	}
+	q.messageRepos.Save(ctx, message)
 	q.messages = append(q.messages, message)
 	return message.ID
 }
 
 // ReceiveMessage retrieves a message from the queue with a visibility timeout
-func (q *queueService) ReceiveMessage(timeout time.Duration) *service.Message {
+func (q *queueService) ReceiveMessage(ctx context.Context, timeout time.Duration) *domain.Message {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -50,7 +58,7 @@ func (q *queueService) ReceiveMessage(timeout time.Duration) *service.Message {
 }
 
 // DeleteMessage deletes a message using its receipt handle
-func (q *queueService) DeleteMessage(receiptHandle string) bool {
+func (q *queueService) DeleteMessage(ctx context.Context, receiptHandle string) bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 

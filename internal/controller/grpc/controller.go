@@ -23,7 +23,7 @@ func NewQueueController(queueService service.QueueService) proto.QueueServer {
 
 // SendMessage gRPC method
 func (s *queueController) SendMessage(ctx context.Context, req *proto.SendMessageRequest) (*proto.SendMessageResponse, error) {
-	messageID := s.queueService.SendMessage(req.GetMessageBody())
+	messageID := s.queueService.SendMessage(ctx, req.GetMessageBody())
 
 	// if messageID != "" {
 	// 	messagesProduced.Inc()
@@ -34,7 +34,7 @@ func (s *queueController) SendMessage(ctx context.Context, req *proto.SendMessag
 
 // Implement the ReceiveMessage method with visibility timeout using the Queue
 func (s *queueController) ReceiveMessage(ctx context.Context, req *proto.ReceiveMessageRequest) (*proto.ReceiveMessageResponse, error) {
-	message := s.queueService.ReceiveMessage(time.Second * 30) // 30-second visibility timeout
+	message := s.queueService.ReceiveMessage(ctx, time.Second*30) // 30-second visibility timeout
 	if message == nil {
 		return nil, fmt.Errorf("no messages available")
 	}
@@ -50,7 +50,7 @@ func (s *queueController) ReceiveMessage(ctx context.Context, req *proto.Receive
 
 // DeleteMessage gRPC method
 func (s *queueController) DeleteMessage(ctx context.Context, req *proto.DeleteMessageRequest) (*proto.DeleteMessageResponse, error) {
-	success := s.queueService.DeleteMessage(req.GetReceiptHandle())
+	success := s.queueService.DeleteMessage(ctx, req.GetReceiptHandle())
 
 	if success {
 		// messagesDeleted.Inc()

@@ -1,6 +1,8 @@
 package domain
 
+import "time"
+
 type Queue struct {
-	Name    string
-	Message string
+	Name      string
+	CreatedAt time.Time
 }

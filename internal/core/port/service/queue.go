@@ -1,9 +1,14 @@
 package service
 
-import "time"
+import (
+	"context"
+	"time"
+
+	"queueserver/internal/core/domain"
+)
 
 type QueueService interface {
-	SendMessage(body string) string
-	ReceiveMessage(timeout time.Duration) *Message
-	DeleteMessage(receiptHandle string) bool
+	SendMessage(ctx context.Context, body string) string
+	ReceiveMessage(ctx context.Context, timeout time.Duration) *domain.Message
+	DeleteMessage(ctx context.Context, receiptHandle string) bool
 }

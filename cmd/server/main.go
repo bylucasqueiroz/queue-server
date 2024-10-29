@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 
+	"queueserver/internal/adapter/config"
+	"queueserver/internal/adapter/repository"
 	"queueserver/internal/core/service"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -47,8 +49,23 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
+	// Create a new Config
+	config := config.NewConfig()
+
+	// Create a Message Repository
+	messageRepo, err := repository.NewPostgresMessageRepository(config)
+	if err != nil {
+		panic("error to create a Message Repository")
+	}
+
+	// Create a Queue Repository
+	queueRepo, err := repository.NewPostgresQueueRepository(config)
+	if err != nil {
+		panic("error to create a Queue Repository")
+	}
+
 	// Create a new Service
-	queueService := service.NewQueueService()
+	queueService := service.NewQueueService(queueRepo, messageRepo)
 
 	// Create a new Controller
 	userController := grpcCtrl.NewQueueController(queueService)
