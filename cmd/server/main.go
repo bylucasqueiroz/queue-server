@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -55,13 +56,13 @@ func main() {
 	// Create a Message Repository
 	messageRepo, err := repository.NewPostgresMessageRepository(config)
 	if err != nil {
-		panic("error to create a Message Repository")
+		panic(fmt.Sprintf("error to create a Message Repository: %v", err))
 	}
 
 	// Create a Queue Repository
 	queueRepo, err := repository.NewPostgresQueueRepository(config)
 	if err != nil {
-		panic("error to create a Queue Repository")
+		panic(fmt.Sprintf("error to create a Queue Repository: %v", err))
 	}
 
 	// Create a new Service
