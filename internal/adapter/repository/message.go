@@ -33,11 +33,11 @@ func NewPostgresMessageRepository(config *config.Config) (*PostgresMessageReposi
 }
 
 func (r *PostgresMessageRepository) Save(ctx context.Context, message *domain.Message) error {
-	query := `INSERT INTO messages (id, body, receipt_handle, visibility_timeout) 
-              VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE 
+	query := `INSERT INTO messages (id, body, receipt_handle, visibility_timeout, queue_name) 
+              VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO UPDATE 
               SET body = EXCLUDED.body, receipt_handle = EXCLUDED.receipt_handle, 
-                  visibility_timeout = EXCLUDED.visibility_timeout`
-	_, err := r.db.ExecContext(ctx, query, message.ID, message.Body, message.ReceiptHandle, message.VisibilityTimeout)
+                  visibility_timeout = EXCLUDED.visibility_timeout, queue_name = EXCLUDED.queue_name`
+	_, err := r.db.ExecContext(ctx, query, message.ID, message.Body, message.ReceiptHandle, message.VisibilityTimeout, message.QueueName)
 	if err != nil {
 		return fmt.Errorf("failed to save message: %v", err)
 	}
@@ -45,11 +45,11 @@ func (r *PostgresMessageRepository) Save(ctx context.Context, message *domain.Me
 }
 
 func (r *PostgresMessageRepository) GetByID(ctx context.Context, id string) (*domain.Message, error) {
-	query := `SELECT id, body, receipt_handle, visibility_timeout FROM messages WHERE id = $1`
+	query := `SELECT id, body, receipt_handle, visibility_timeout, queue_name FROM messages WHERE id = $1`
 	row := r.db.QueryRowContext(ctx, query, id)
 
 	message := &domain.Message{}
-	if err := row.Scan(&message.ID, &message.Body, &message.ReceiptHandle, &message.VisibilityTimeout); err != nil {
+	if err := row.Scan(&message.ID, &message.Body, &message.ReceiptHandle, &message.VisibilityTimeout, &message.QueueName); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
