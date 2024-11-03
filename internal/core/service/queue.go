@@ -13,7 +13,7 @@ import (
 )
 
 type queueService struct {
-	messages     []*domain.Message
+	queueManager []*domain.QueueManager
 	queueRepo    *repository.PostgresQueueRepository
 	messageRepos *repository.PostgresMessageRepository
 	mu           sync.Mutex // for thread-safe access
@@ -21,53 +21,68 @@ type queueService struct {
 
 func NewQueueService(queueRepo *repository.PostgresQueueRepository, messageRepo *repository.PostgresMessageRepository) service.QueueService {
 	return &queueService{
-		messages:     make([]*domain.Message, 0),
+		queueManager: make([]*domain.QueueManager, 0),
 		queueRepo:    queueRepo,
 		messageRepos: messageRepo,
 	}
 }
 
 // SendMessage pushes a message onto the queue
-func (q *queueService) SendMessage(ctx context.Context, body string) string {
+func (q *queueService) SendMessage(ctx context.Context, queueName string, body string) string {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	message := &domain.Message{
-		ID:                generateID(),
-		Body:              body,
-		ReceiptHandle:     generateReceiptHandle(),
-		VisibilityTimeout: time.Now(), // Initial visibility timeout set to now
+	for _, queue := range q.queueManager {
+		if queue.QueueName == queueName {
+			message := &domain.Message{
+				ID:                generateID(),
+				Body:              body,
+				ReceiptHandle:     generateReceiptHandle(),
+				VisibilityTimeout: time.Now(), // Initial visibility timeout set to now
+			}
+			q.messageRepos.Save(ctx, message)
+			queue.Messages = append(queue.Messages, message)
+			return message.ID
+		}
 	}
-	q.messageRepos.Save(ctx, message)
-	q.messages = append(q.messages, message)
-	return message.ID
+
+	return "" // Queue not found
 }
 
 // ReceiveMessage retrieves a message from the queue with a visibility timeout
-func (q *queueService) ReceiveMessage(ctx context.Context, timeout time.Duration) *domain.Message {
+func (q *queueService) ReceiveMessage(ctx context.Context, queueName string, timeout time.Duration) *domain.Message {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	for _, msg := range q.messages {
-		if time.Now().After(msg.VisibilityTimeout) {
-			msg.VisibilityTimeout = time.Now().Add(timeout)
-			return msg
+	for _, queue := range q.queueManager {
+		if queue.QueueName == queueName {
+			for _, msg := range queue.Messages {
+				if time.Now().After(msg.VisibilityTimeout) {
+					msg.VisibilityTimeout = time.Now().Add(timeout)
+					return msg
+				}
+			}
 		}
 	}
 	return nil // No available message
 }
 
 // DeleteMessage deletes a message using its receipt handle
-func (q *queueService) DeleteMessage(ctx context.Context, receiptHandle string) bool {
+func (q *queueService) DeleteMessage(ctx context.Context, queueName string, receiptHandle string) bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	for i, msg := range q.messages {
-		if msg.ReceiptHandle == receiptHandle {
-			q.messages = append(q.messages[:i], q.messages[i+1:]...)
-			return true
+	for _, queue := range q.queueManager {
+		if queue.QueueName == queueName {
+			for j, msg := range queue.Messages {
+				if msg.ReceiptHandle == receiptHandle {
+					queue.Messages = append(queue.Messages[:j], queue.Messages[j+1:]...)
+					return true
+				}
+			}
 		}
 	}
+
 	return false
 }
 

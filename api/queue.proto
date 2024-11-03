@@ -19,6 +19,7 @@ service Queue {
 // SendMessage request structure
 message SendMessageRequest {
     string message_body = 1; // Body of the message
+    string queue_name = 2; // Queue name
 }
 
 // SendMessage response structure
@@ -27,18 +28,22 @@ message SendMessageResponse {
 }
 
 // ReceiveMessage request structure
-message ReceiveMessageRequest {}
+message ReceiveMessageRequest {
+    string queue_name = 1;
+}
 
 // ReceiveMessage response structure
 message ReceiveMessageResponse {
     string message_id = 1;         // Unique ID of the received message
     string message_body = 2;       // Body of the received message
     string receipt_handle = 3;     // Unique receipt handle for deleting the message
+    string queue_name = 4;         // Queue name
 }
 
 // DeleteMessage request structure
 message DeleteMessageRequest {
     string receipt_handle = 1;     // The receipt handle of the message to delete
+    string queue_name = 2;         // Queue name
 }
 
 // DeleteMessage response structure

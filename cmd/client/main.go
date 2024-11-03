@@ -23,13 +23,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	sendResp, err := c.SendMessage(ctx, &pb.SendMessageRequest{MessageBody: "Hello, SQS!"})
+	sendResp, err := c.SendMessage(ctx, &pb.SendMessageRequest{MessageBody: "Hello, SQS!", QueueName: "queue1"})
 	if err != nil {
 		log.Fatalf("Could not send message: %v", err)
 	}
 	log.Printf("Message sent, ID: %s", sendResp.MessageId)
 
-	receiveResp, err := c.ReceiveMessage(ctx, &pb.ReceiveMessageRequest{})
+	receiveResp, err := c.ReceiveMessage(ctx, &pb.ReceiveMessageRequest{QueueName: "queue1"})
 	if err != nil {
 		log.Fatalf("Could not receive message: %v", err)
 	}
