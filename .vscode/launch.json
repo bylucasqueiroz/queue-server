@@ -11,8 +11,8 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "env": {
-                "POSTGRES_HOST": "postgres",
-                "POSTGRES_PORT": "5432",
+                "POSTGRES_HOST": "127.0.0.1",
+                "POSTGRES_PORT": "43163",
                 "POSTGRES_DB_NAME": "queue_server",
                 "POSTGRES_USER": "ps_user",
                 "POSTGRES_PASSWORD": "SecurePassword"

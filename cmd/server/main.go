@@ -3,20 +3,21 @@ package main
 import (
 	"fmt"
 	"log"
-	"net"
-	"net/http"
 
 	"queueserver/internal/adapter/config"
 	"queueserver/internal/adapter/repository"
+	grpcCtrl "queueserver/internal/controller/grpc"
+	grpcConfig "queueserver/internal/core/config"
+	"queueserver/internal/core/server"
+	"queueserver/internal/core/server/grpc"
 	"queueserver/internal/core/service"
 
+	pb "queueserver/api"
+
+	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	pb "queueserver/api" // Import the generated package
-	grpcCtrl "queueserver/internal/controller/grpc"
-
-	"google.golang.org/grpc"
+	googleGrpc "google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 var (
@@ -44,10 +45,10 @@ func init() {
 
 // QueueServer is the gRPC server that implements the Queue service
 func main() {
-	// Listen on port 50051
-	lis, err := net.Listen("tcp", ":50051")
+	// Carrega o arquivo .env
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
+		log.Fatalf("Erro ao carregar o arquivo .env: %v", err)
 	}
 
 	// Create a new Config
@@ -71,18 +72,34 @@ func main() {
 	// Create a new Controller
 	userController := grpcCtrl.NewQueueController(queueService)
 
-	// Create a new gRPC server
-	s := grpc.NewServer()
-	pb.RegisterQueueServer(s, userController)
-
-	// Start Prometheus metrics server
-	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		log.Fatal(http.ListenAndServe(":2112", nil))
-	}()
-
-	log.Println("Server is running on port 50051...")
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+	// Create the gRPC server
+	grpcServer, err := grpc.NewGrpcServer(
+		grpcConfig.GrpcServerConfig{
+			Port: 50051,
+			KeepaliveParams: keepalive.ServerParameters{
+				MaxConnectionIdle:     100,
+				MaxConnectionAge:      7200,
+				MaxConnectionAgeGrace: 60,
+				Time:                  10,
+				Timeout:               3,
+			},
+			KeepalivePolicy: keepalive.EnforcementPolicy{
+				MinTime:             10,
+				PermitWithoutStream: true,
+			},
+		},
+	)
+	if err != nil {
+		log.Fatalf("failed to new grpc server err=%s\n", err.Error())
 	}
+
+	// Start the gRPC server
+	go grpcServer.Start(
+		func(server *googleGrpc.Server) {
+			pb.RegisterQueueServer(server, userController)
+		},
+	)
+
+	// Add shutdown hook to trigger closer resources of service
+	server.AddShutdownHook(grpcServer)
 }
