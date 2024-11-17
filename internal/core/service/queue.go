@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -28,7 +29,7 @@ func NewQueueService(queueRepo *repository.PostgresQueueRepository, messageRepo 
 }
 
 // SendMessage pushes a message onto the queue
-func (q *queueService) SendMessage(ctx context.Context, queueName string, body string) string {
+func (q *queueService) SendMessage(ctx context.Context, queueName string, body string) (string, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -44,40 +45,40 @@ func (q *queueService) SendMessage(ctx context.Context, queueName string, body s
 
 	err := q.messageRepos.Save(ctx, message)
 	if err != nil {
-		return ""
+		return "", errors.New("save_message: error to save the message on postgres")
 	}
 
-	return message.ID
+	return message.ID, nil
 }
 
 // ReceiveMessage retrieves a message from the queue with a visibility timeout
-func (q *queueService) ReceiveMessage(ctx context.Context, queueName string, timeout time.Duration) *domain.Message {
+func (q *queueService) ReceiveMessage(ctx context.Context, queueName string, timeout time.Duration) (*domain.Message, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	for _, msg := range q.messages {
 		if time.Now().After(msg.VisibilityTimeout) {
 			msg.VisibilityTimeout = time.Now().Add(timeout)
-			return msg
+			return msg, nil
 		}
 	}
 
-	return nil // No available message
+	return nil, errors.New("no available message") // No available message
 }
 
 // DeleteMessage deletes a message using its receipt handle
-func (q *queueService) DeleteMessage(ctx context.Context, queueName string, receiptHandle string) bool {
+func (q *queueService) DeleteMessage(ctx context.Context, queueName string, receiptHandle string) (bool, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	for j, msg := range q.messages {
 		if msg.ReceiptHandle == receiptHandle {
 			q.messages = append(q.messages[:j], q.messages[j+1:]...)
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, errors.New("was not possible to delete the message.")
 }
 
 // Utility functions to generate IDs and receipt handles
